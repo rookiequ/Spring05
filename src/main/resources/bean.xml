@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/aop
+        http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+
+    <!--配置spring的ioc，把service对象配置进来-->
+    <bean id="accountService" class="com.user.service.impl.AccountServiceImpl"></bean>
+
+    <!--开始配置aop-->
+    <!--1.把通知bean或者增强bean配置进来，交给spring管理-->
+    <bean id="logger" class="com.user.utils.Logger"></bean>
+    <!--2.使用aop：config标签表明开始aop的配置-->
+    <aop:config>
+        <!--2.1配置切入点表达式，即要对那些类进行代理-->
+        <!--id属性用于指定表达式的唯一标识，expression属性用于指定表达式的内容-->
+        <!--切入点表达式写法
+            关键字：execution(表达式
+            表达式：访问修饰符 返回值 包名.包名.包名...类名.方法名(参数列表) )
+            标准的表达式写法：
+                public void com.user.service.impl.AccountServiceImpl.saveAccount()
+            访问修饰符可以省略：
+                void com.user.service.impl.AccountServiceImpl.saveAccount()
+            返回值可以使用通配符* :
+                * com.user.service.impl.AccountServiceImpl.saveAccount()
+            包名可以使用通配符* ：
+                * *.*.*.*.AccountServiceImpl.saveAccount()
+            包名也可以使用..表示当前包及其子包：
+                * *..AccountServiceImpl.saveAccount()
+            类名和方法名都可以使用通配符 * ：
+                * *..*.*()
+            参数列表：
+                可以直接写数据类型
+                    基本数据类型 直接写名称    int
+                    引用数据类型 包名.类名的方式     java.lang.String
+                可以使用通配符*表示任意类型，但是必须要由参数
+                可以使用..表示有无参数都可以，且参数可以是任意类型
+            通配写法：
+                * *..*.*(..)
+            实际开发中切入点表达式的通用写法：
+                切入业务层实现类下的所有方法
+                * com.user.service.impl.*.*(..)
+            -->
+        <aop:pointcut id="pt1" expression="execution(* com.user.service.impl.*.*(..))"></aop:pointcut>
+        <!--配置切面（切面是切入点和通知的结合，即被代理方法和增强方法的结合-->
+        <!--3.使用aop:aspect标签表明配置切面-->
+        <aop:aspect id="logAdvice" ref="logger">
+            <!--aop：aspect标签的内部使用对应标签来配置通知类型
+            aop:before 表示前置通知
+            method: 指定logger类中哪个方法进行前置通知
+            pointcut-ref:用于指定切入点表达式，该表达式的含义指的是业务层那些方法进行增强-->
+  <!--          &lt;!&ndash;配置前置通知，在切入点方法执行之前执行&ndash;&gt;
+            <aop:before method="beforePrinting" pointcut-ref="pt1"></aop:before>
+            &lt;!&ndash;后置通知，在切入点方法执行之后执行&ndash;&gt;
+            <aop:after-returning method="afterReturningPrinting" pointcut-ref="pt1"></aop:after-returning>
+            &lt;!&ndash;异常通知，在切入点方法发生异常时执行&ndash;&gt;
+            <aop:after-throwing method="afterThrowingPrinting" pointcut-ref="pt1"></aop:after-throwing>
+            &lt;!&ndash;最终通知，在切入点方法最后执行，始终会执行&ndash;&gt;
+            <aop:after method="afterPrintLog" pointcut-ref="pt1"></aop:after>-->
+            <!--配置环绕通知-->
+            <aop:around method="aroundPrinting" pointcut-ref="pt1"></aop:around>
+        </aop:aspect>
+    </aop:config>
+
+
+</beans>
